@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<routes>
+    <!-- 后台接口路由示例 -->
+    <group name="web apis">
+        <group name="user apis">
+            <version name="v1">
+                <route path="account/login" method="post" authorization="required">
+                    <class>com.tface.example.LoginHandler</class>
+                    <method>loginV1</method>-->
+                    <params>
+                        <name canBeNull="false">email</name>
+                        <name canBeNull="false">code</name>
+                    </params>
+                </route>
+            </version>
+            <version name="v2">
+                <route path="account/login" method="post" authorization="required">
+                    <class>com.tface.example.LoginHandler</class>
+                    <method>loginV2</method>-->
+                    <params>
+                        <name canBeNull="false">email</name>
+                        <name canBeNull="false">code</name>
+                        <name canBeNull="false">mobile</name>
+                    </params>
+                </route>
+            </version>
+        </group>
+    </group>
+
+    <!-- 客户端接口路由示例 -->
+    <group name="app apis">
+        <!-- 用户相关api -->
+        <group name="user apis">
+        </group>
+        <!-- 小说api -->
+        <group name="">
+        </group>
+    </group>
+</routes>

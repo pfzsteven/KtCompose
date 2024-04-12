@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ApiCodes>
+    <Code value="401">
+        <zh>登录信息无效或已经过期，请重新登录</zh>
+        <tw>登入資訊無效或已過期，請重新登入</tw>
+        <en>please login again.</en>
+    </Code>
+    <Code value="-1000">
+        <zh>请求参数错误</zh>
+        <tw>請求參數錯誤</tw>
+        <en>Request error</en>
+    </Code>
+    <Code value="-2000">
+        <zh>权限不足</zh>
+        <tw>權限不足</tw>
+        <en>Permission error</en>
+    </Code>
+</ApiCodes>
