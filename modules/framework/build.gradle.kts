@@ -15,6 +15,8 @@ dependencies {
     implementation("io.ktor:ktor-client-okhttp:$ktor_version")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0-RC.2")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
     implementation("org.json:json:20240303")
 }
 kotlin {

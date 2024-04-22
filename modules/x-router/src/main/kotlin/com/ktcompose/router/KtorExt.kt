@@ -1,6 +1,6 @@
 package com.ktcompose.router
 
-import com.ktcompose.framework.http.HttpRequestHeader
+import com.ktcompose.framework.http.HttpHeader
 import com.ktcompose.framework.http.HttpRequestParameters
 import com.ktcompose.framework.utils.GsonUtils
 import io.ktor.http.*
@@ -57,9 +57,9 @@ object KtorExt {
 
     @JvmStatic
     suspend fun ApplicationCall.filter(
-        result: suspend (header: HttpRequestHeader, param: HttpRequestParameters) -> Unit
+        result: suspend (header: HttpHeader, param: HttpRequestParameters) -> Unit
     ) {
-        val httpRequestHeader = HttpRequestHeader()
+        val httpHeader = HttpHeader()
         var httpRequestParameters: HttpRequestParameters? = null
         val headers: Headers = request.headers
         headers.forEach { key, values ->
@@ -70,7 +70,7 @@ object KtorExt {
             if (valueBuilder.isNotEmpty()) {
                 valueBuilder.deleteCharAt(valueBuilder.length - 1)
             }
-            httpRequestHeader[key] = valueBuilder.toString()
+            httpHeader[key] = valueBuilder.toString()
         }
         when (request.contentType()) {
             ContentType.Application.Json -> {
@@ -86,7 +86,7 @@ object KtorExt {
             }
         }
         httpRequestParameters = httpRequestParameters ?: HttpRequestParameters()
-        result.invoke(httpRequestHeader, httpRequestParameters!!)
+        result.invoke(httpHeader, httpRequestParameters!!)
     }
 
     @JvmStatic

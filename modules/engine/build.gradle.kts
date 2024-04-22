@@ -9,9 +9,8 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":framework"))
-    implementation(project(":jwt"))
     implementation(project(":x-router"))
+    implementation(project(":framework"))
     compileOnly(project(":validation"))
     compileOnly("com.google.code.gson:gson:2.10.1")
     compileOnly("io.ktor:ktor-server-core-jvm")

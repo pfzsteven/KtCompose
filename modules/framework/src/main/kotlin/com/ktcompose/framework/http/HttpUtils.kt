@@ -50,8 +50,8 @@ object HttpUtils {
 
     @JvmStatic
     fun init(properties: Properties) {
-        val connectionTimeout = properties.getProperty("http.connect-timeout")
-        val readTimeout = properties.getProperty("http.read-timeout")
+        val connectionTimeout = properties.getProperty("http.connect_timeout")
+        val readTimeout = properties.getProperty("http.read_timeout")
         connectionTimeout?.let {
             connection_timeout = it.toInt() * 1000L
         }

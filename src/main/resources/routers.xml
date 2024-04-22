@@ -1,26 +1,33 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"  ?>
+<!DOCTYPE routes SYSTEM "/Users/admin/neo_backend/routers.dtd">
 <routes>
     <!-- 后台接口路由示例 -->
     <group name="web apis">
         <group name="user apis">
             <version name="v1">
-                <route path="account/login" method="post" authorization="required">
-                    <class>com.tface.example.LoginHandler</class>
-                    <method>loginV1</method>-->
+                <route path="account/login" method="post">
+                    <class>com.example.main.LoginHandler</class>
+                    <method>loginV1</method>
                     <params>
-                        <name canBeNull="false">email</name>
-                        <name canBeNull="false">code</name>
+                        <name type="java.lang.String" canBeNull="false">email</name>
+                        <name type="java.lang.String" canBeNull="false">code</name>
+                    </params>
+                </route>
+                <route path="user/info" method="get" authorize="true">
+                    <class>com.example.main.UserController</class>
+                    <method>getUserInfo</method>
+                    <params>
                     </params>
                 </route>
             </version>
             <version name="v2">
-                <route path="account/login" method="post" authorization="required">
-                    <class>com.tface.example.LoginHandler</class>
-                    <method>loginV2</method>-->
+                <route path="account/login" method="post" authorize="true">
+                    <class>com.example.main.LoginHandler</class>
+                    <method>loginV2</method>
                     <params>
-                        <name canBeNull="false">email</name>
-                        <name canBeNull="false">code</name>
-                        <name canBeNull="false">mobile</name>
+                        <name type="java.lang.String" canBeNull="false">email</name>
+                        <name type="java.lang.String" canBeNull="false">code</name>
+                        <name type="java.lang.String" canBeNull="false">mobile</name>
                     </params>
                 </route>
             </version>

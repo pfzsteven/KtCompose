@@ -1,4 +1,4 @@
-package com.ketcompose.main
+package com.example.main
 
 import com.ktcompose.engine.ServerEngine
 import io.ktor.server.engine.*

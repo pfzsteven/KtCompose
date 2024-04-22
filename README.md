@@ -1,4 +1,3 @@
-
 ## 新项目引入通用模块的操作流程
 
 1. 拷贝 ```modules``` 文件夹到新项目的工程根目录下
@@ -6,17 +5,20 @@
 3. 拷贝 ```gradle.properties```的```jdkVersion=17```到新工程
 4. ```Gradle```刷新，即可完成通用模块的编译
 5. 配置依赖。在新工程根目录的```build.gradle.kts```中增加下列依赖:
+
 ```kotlin
     // 配置依赖 
-    implementation(project(":engine"))    // 必须
-    compileOnly(project(":framework"))    // 可选，外部如果有使用，则添加该依赖
+implementation(project(":engine"))    // 必须
+compileOnly(project(":framework"))    // 可选，外部如果有使用，则添加该依赖
 ```
+
 6. 将```根目录/src/main/resources```所有配置信息拷贝到新工程，根据情况修改后使用
 7. jdk 版本统一。新工程也尽量使用 ```17```，否则Gradle同步过程可能会出现编译错误
 
 ## 使用方式
 
 ### 做必要的配置工作
+
 - 配置列表说明:
 
 | 配置文件                         | 作用                      |
@@ -27,7 +29,6 @@
 | logback.xml                  | 日志文件输出格式定义              |
 | routers.xml                  | 路由配置                    |
 | validation_code_template.xml | 邮箱验证码模板配置               |
-
 
 ### 初始化引擎
 
@@ -45,3 +46,16 @@ fun main() {
     embeddedServer(Tomcat, environment).start(wait = true)
 }
 ```
+
+### jwt 配置说明
+
+| 配置名                   | 描述                                       |
+|-----------------------|------------------------------------------|
+| jwt.class             | 【可选】jwt扩展逻辑处理类                           |
+| jwt.hs256.secret      | HS256:密钥文本;                              |
+| jwt.rs256.kid         | 公钥信息:填写在```certs/jwks.json```中```kid```值 |
+| jwt.rs256.private_key | 私钥信息：直接配置字符串                             |
+| jwt.issuer            | 签发者(当前域名)                                |
+| jwt.audience          | 受众者                                      |
+| jwt.auth_key          | jwt值在Http请求头中的```key```                  |
+| jwt.expired_days      | jwt过期时间。默认不过期                            |

@@ -7,21 +7,12 @@ plugins {
     id("io.ktor.plugin") version "2.3.9"
 }
 
-group = "org.beautyspace.ktc"
-version = "1.0-SNAPSHOT"
-
 repositories {
     mavenCentral()
 }
 
 application {
-    mainClass.set("com.ktcompose.main.Application")
-}
-
-allprojects {
-    subprojects {
-        println(">>Submodule:[${project.name}]")
-    }
+    mainClass.set("com.example.main.Application")
 }
 
 dependencies {
@@ -29,10 +20,12 @@ dependencies {
     implementation("io.ktor:ktor-server-tomcat-jvm")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("io.ktor:ktor-network-tls:$ktor_version")
+    implementation("io.ktor:ktor-network-tls-certificates:$ktor_version")
+    implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     // 配置依赖
     implementation(project(":engine"))
-    implementation(project(":framework")) // 必须
+    implementation(project(":framework"))
 }
 
 tasks.test {

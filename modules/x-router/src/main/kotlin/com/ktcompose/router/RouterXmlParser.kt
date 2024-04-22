@@ -9,15 +9,15 @@ import java.util.concurrent.ConcurrentHashMap
 object RouterXmlParser {
 
     @JvmStatic
-    private fun parseRouteParams(child: Node, paramsList: ArrayList<RouterParams>) {
-        if (child.hasChildNodes()) {
-            val params = RouterParams()
-            paramsList.add(params)
+    private fun parseRouteParams(child: Node, paramsList: ArrayList<RouterParams>?) {
+        if (child.hasChildNodes() && paramsList != null) {
             val namesNodeList = child.childNodes
             for (n in 0 until namesNodeList.length) {
                 val nameNode = namesNodeList.item(n)
                 when (nameNode.nodeName) {
                     "name" -> {
+                        val params = RouterParams()
+                        paramsList.add(params)
                         nameNode.textContent?.takeIf { it.isNotEmpty() }?.let { nodeValue ->
                             params.name = nodeValue
                             nameNode.attributes?.takeIf { it.length > 0 }?.let { attributes ->
@@ -28,6 +28,10 @@ object RouterXmlParser {
                                         when (attr.nodeName) {
                                             "canBeNull" -> {
                                                 params.canBeNull = v.toBoolean()
+                                            }
+
+                                            "type" -> {
+                                                params.type = v
                                             }
 
                                             else -> {
@@ -44,7 +48,7 @@ object RouterXmlParser {
     }
 
     @JvmStatic
-    private fun parseVersionAttributes(node: Node): String? {
+    private fun getApiVersion(node: Node): String? {
         node.attributes?.takeIf { it.length > 0 }?.let { attributes ->
             for (i in 0 until attributes.length) {
                 val attr = attributes.item(i)
@@ -78,8 +82,8 @@ object RouterXmlParser {
                         router.method = value
                     }
 
-                    "authorization" -> {
-                        router.needAuthorization = value == "required"
+                    "authorize" -> {
+                        router.needAuthorization = value == "true"
                     }
                 }
             }
@@ -87,17 +91,18 @@ object RouterXmlParser {
     }
 
     @JvmStatic
-    fun parse(parent: Node, routerMap: ConcurrentHashMap<String, Router>, version: String? = "v1"): Any? {
+    fun parse(
+        parent: Node, routerMap: ConcurrentHashMap<String, Router>, version: String? = "v1"
+    ): Any? {
         when (parent.nodeName) {
             "version" -> {
                 // api 版本号
-                parseVersionAttributes(parent)?.let { apiVersion ->
-                    if (parent.hasChildNodes()) {
-                        val childNodes = parent.childNodes
-                        childNodes.takeIf { it.length > 0 }?.let { list ->
-                            for (i in 0 until list.length) {
-                                parse(list.item(i), routerMap, version)
-                            }
+                val apiVersion = getApiVersion(parent) ?: "v1"
+                if (parent.hasChildNodes()) {
+                    val childNodes = parent.childNodes
+                    childNodes.takeIf { it.length > 0 }?.let { list ->
+                        for (i in 0 until list.length) {
+                            parse(list.item(i), routerMap, apiVersion)
                         }
                     }
                 }
@@ -117,15 +122,13 @@ object RouterXmlParser {
             "route" -> {
                 val router = Router()
                 // attributes
-                parseRouteAttributes(parent, router)
+                parseRouteAttributes(parent, router, version)
                 // cache
                 router.path?.takeIf { it.isNotEmpty() }?.let { path ->
                     routerMap[path] = router
                 }
                 if (parent.hasChildNodes()) {
                     val childNodes = parent.childNodes
-                    val paramsList = ArrayList<RouterParams>()
-                    router.params = paramsList
                     childNodes.takeIf { it.length > 0 }?.let { list ->
                         for (i in 0 until list.length) {
                             val child = list.item(i)
@@ -147,16 +150,14 @@ object RouterXmlParser {
 
                                 "params" -> {
                                     // 解析请求参数
-                                    parseRouteParams(child, paramsList)
+                                    parseRouteParams(child, router.handler?.params)
                                 }
                             }
                         }
                     }
                 }
+                router.handler?.prepare()
                 return router
-            }
-
-            else -> {
             }
         }
         return null

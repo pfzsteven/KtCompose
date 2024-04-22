@@ -1,0 +1,28 @@
+<!ELEMENT routes (group*)>
+        <!-- group 标签 -->
+        <!ELEMENT group (group*, version*)>
+        <!ATTLIST group
+                name CDATA #REQUIRED>
+        <!-- version 标签 -->
+        <!ELEMENT version (route*)>
+        <!ATTLIST version
+                name (v1 | v2) #REQUIRED>
+        <!-- route 标签 -->
+        <!ELEMENT route (class, method, params)>
+        <!ATTLIST route
+                path CDATA #REQUIRED
+                method (get | post | put | delete) #IMPLIED
+                authorize (true | false) #IMPLIED>
+        <!-- class 标签 -->
+        <!ELEMENT class (#PCDATA)>
+        <!-- class > method 标签 -->
+        <!ELEMENT method (#PCDATA)>
+        <!-- class > method > params 标签 -->
+        <!ELEMENT params (name*)>
+        <!-- class > params > name 标签 -->
+        <!ELEMENT name (#PCDATA)>
+        <!ATTLIST name
+                type CDATA #REQUIRED
+                canBeNull (true | false) "true">
+
+

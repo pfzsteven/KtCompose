@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     kotlin("jvm")
 }
@@ -10,7 +12,6 @@ repositories {
 
 dependencies {
     compileOnly(project(":framework"))
-    compileOnly(project(":jwt"))
     compileOnly("com.google.code.gson:gson:2.10.1")
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")

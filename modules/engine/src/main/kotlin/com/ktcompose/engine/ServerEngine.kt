@@ -1,8 +1,10 @@
 package com.ktcompose.engine
 
 import com.ktcompose.framework.api.ApiCodesParser
+import com.ktcompose.framework.api.dto.ApiResponse
 import com.ktcompose.framework.env.ServerEnvManager
 import com.ktcompose.framework.http.HttpUtils
+import com.ktcompose.framework.jwt.JwtManager
 import com.ktcompose.framework.utils.LogUtils
 import com.ktcompose.framework.utils.ResourcesUtils
 import com.ktcompose.router.KtorExt.configureHTTP
@@ -48,6 +50,8 @@ object ServerEngine {
         LogUtils.init(properties.getProperty("log.enable"))
         // http
         HttpUtils.init(properties)
+        // DTO Serialize
+        ApiResponse.updateSerialNumber(properties.getProperty("dto.serial", ""))
         // [可选]若有添加验证模块，则初始化
         initValidationModule()
         // API环境管理 api environment manager
@@ -56,6 +60,8 @@ object ServerEngine {
         RouterHandler.init()
         // api 错误码
         ApiCodesParser.init("api_codes.xml")
+        // jwt 解析
+        JwtManager.initJwtConfig(properties)
         return properties
     }
 
@@ -91,7 +97,6 @@ object ServerEngine {
                 keyStorePath = keyStoreFile
             }
             module {
-                println("------ module {} ------")
                 configureHTTP()
                 configureRouting()
                 init(this)

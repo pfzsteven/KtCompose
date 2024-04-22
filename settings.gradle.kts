@@ -1,9 +1,11 @@
 import java.io.FileFilter
+import java.io.FilenameFilter
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }
-rootProject.name = "KtCompose"
+rootProject.name = "NeoBackend"
+
 // 自动构建通用依赖模块
 // -------- 新项目拷贝以下通用代码 ----------
 val modules: ArrayList<File> = ArrayList()
