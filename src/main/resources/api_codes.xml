@@ -5,6 +5,11 @@
         <tw>登入資訊無效或已過期，請重新登入</tw>
         <en>please login again.</en>
     </Code>
+    <Code value="403">
+        <zh>权限不足</zh>
+        <tw>權限不足</tw>
+        <en>Forbidden</en>
+    </Code>
     <Code value="-1000">
         <zh>请求参数错误</zh>
         <tw>請求參數錯誤</tw>

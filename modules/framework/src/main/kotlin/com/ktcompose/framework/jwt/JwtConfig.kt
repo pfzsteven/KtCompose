@@ -1,11 +1,41 @@
 package com.ktcompose.framework.jwt
 
 import com.auth0.jwt.algorithms.Algorithm
+import com.ktcompose.framework.role.Role
 import com.ktcompose.framework.utils.GsonUtils
 import org.json.JSONObject
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.max
+
+class JwtPayload : JSONObject() {
+
+    fun issuer(): String? = this.optString("iss", null)
+
+    fun expired(): Long = this.optLong("exp", -1L)
+
+    fun audience(): String? = this.optString("aud", null)
+
+    fun issuedAt(): Long = this.optLong("iat", -1L)
+
+    fun role(): Role? {
+        val role = this.optInt("role", -1)
+        if (role > -1) {
+            return when (role) {
+                Role.User.level -> Role.User
+                Role.Guest.level -> Role.Guest
+                Role.Developer.level -> Role.Developer
+                Role.Operator.level -> Role.Operator
+                else -> Role.Admin
+            }
+        }
+        return null
+    }
+
+    fun contentToString(): String {
+        return super.toString()
+    }
+}
 
 /**
  * Header.Payload.Signature
@@ -41,18 +71,9 @@ data class JwtConfig(
         }.toString().encodeToByteArray())
     }
 
-    /**
-     * iss (issuer)：签发人
-     * exp (expiration time)：过期时间
-     * sub (subject)：主题
-     * aud (audience)：受众
-     * nbf (Not Before)：生效时间
-     * iat (Issued At)：签发时间
-     * jti (JWT ID)：编号
-     */
     @OptIn(ExperimentalEncodingApi::class)
     private fun buildJwtPayload(extraPayloadData: HashMap<String, String>): String {
-        return Base64.Default.encode(JSONObject().apply {
+        val payload = JwtPayload().apply {
             put("iss", issuer)
             put("exp", expiredTime())
             put("aud", audience)
@@ -60,7 +81,8 @@ data class JwtConfig(
             extraPayloadData.forEach { (k, v) ->
                 put(k, v)
             }
-        }.toString().encodeToByteArray())
+        }
+        return Base64.Default.encode(payload.toString().encodeToByteArray())
     }
 
     @OptIn(ExperimentalEncodingApi::class)

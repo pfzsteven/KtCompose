@@ -13,6 +13,7 @@ repositories {
 dependencies {
     compileOnly(project(":framework"))
     compileOnly("com.google.code.gson:gson:2.10.1")
+    compileOnly("org.json:json:20240303")
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")

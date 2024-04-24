@@ -1,7 +1,7 @@
 package com.ktcompose.router
 
 import com.ktcompose.framework.http.HttpRequest
-import com.ktcompose.framework.http.HttpRequestParameters
+import com.ktcompose.framework.role.Role
 import java.lang.reflect.Method
 import java.util.*
 
@@ -23,9 +23,12 @@ class RouterParams {
      * 类型
      */
     var type: String? = null
-}
 
-data class MethodParameter(val parameterName: String, val type: Class<*>)
+    /**
+     * 默认值
+     */
+    var defaultValue: String? = null
+}
 
 /**
  * 路由分发处理逻辑的 类+函数
@@ -48,11 +51,7 @@ class RouterDispatchHandler {
 
     private var _method: Method? = null
     private var _instance: Any? = null
-    private val methodParameters: ArrayList<MethodParameter> by lazy { ArrayList() }
 
-    /**
-     * 预初始化，减少在请求过程中动态反射开销
-     */
     fun prepare() {
         if (_method == null) {
             clazz?.takeIf { !functionName.isNullOrEmpty() }?.let { clz ->
@@ -60,38 +59,20 @@ class RouterDispatchHandler {
                     method.isAccessible = true
                     if (_method == null) {
                         if (method.name == functionName!! && method.returnType == Any::class.java) {
-                            var same = true
                             var i = 0
                             var j = 0
                             while (i < params.size && j < method.parameterCount) {
                                 val methodParameterType = method.parameters[j].type
                                 if (methodParameterType == HttpRequest::class.java) {
-                                    j++
-                                    continue
-                                }
-                                val p = params[i]
-                                val xmlDeclaredParamName = p.name
-                                val xmlDeclaredParamType = p.type
-                                val methodParameterTypeName = methodParameterType.name
-
-                                if (xmlDeclaredParamName.isNullOrEmpty() || !xmlDeclaredParamType.equals(
-                                        methodParameterTypeName
-                                    )
-                                ) {
-                                    same = false
-                                } else {
-                                    methodParameters.add(
-                                        MethodParameter(
-                                            xmlDeclaredParamName, methodParameterType
-                                        )
-                                    )
+                                    _method = method
+                                    break
                                 }
                                 i++
                                 j++
                             }
-                            if (same) {
-                                _method = method
-                            }
+                        }
+                        if (_method != null) {
+                            return@each1
                         }
                     } else {
                         return@each1
@@ -114,42 +95,9 @@ class RouterDispatchHandler {
      * 分发执行
      */
     suspend fun dispatch(
-        httpRequestParameters: HttpRequestParameters,
         invoke: suspend (method: Method, instance: Any, args: LinkedList<Any>) -> Unit
     ) {
         val args: LinkedList<Any> = LinkedList()
-        for (i in 0 until methodParameters.size) {
-            val methodParams = methodParameters[i]
-            val methodParameterType = methodParams.type
-            val paramValue = httpRequestParameters[methodParams.parameterName]?.toString() ?: continue
-            if (methodParameterType == Boolean::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toBoolean())
-                }
-            } else if (methodParameterType == Char::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toCharArray().first());
-                }
-            } else if (methodParameterType == Byte::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toInt().toByte());
-                }
-            } else if (methodParameterType == Float::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toFloat());
-                }
-            } else if (methodParameterType == Long::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toLong());
-                }
-            } else if (methodParameterType == Double::class.java) {
-                if (paramValue.isNotEmpty()) {
-                    args.addLast(paramValue.toDouble());
-                }
-            } else if (methodParameterType == String::class.java) {
-                args.addLast(paramValue);
-            }
-        }
         _method?.takeIf { _instance != null }?.let { m ->
             invoke(m, _instance!!, args)
         }
@@ -180,4 +128,9 @@ class Router {
      * 分发该路由进行处理
      */
     var handler: RouterDispatchHandler? = null
+
+    /**
+     * 访问路由权限
+     */
+    lateinit var permission: HashSet<Role>
 }

@@ -2,6 +2,7 @@ package com.ktcompose.router
 
 import com.ktcompose.framework.api.dto.ApiResponse
 import com.ktcompose.framework.http.HttpCodes
+import com.ktcompose.framework.http.HttpHeader
 import com.ktcompose.framework.http.HttpRequest
 import com.ktcompose.framework.jwt.JwtManager
 import com.ktcompose.framework.utils.GsonUtils
@@ -11,6 +12,7 @@ import com.ktcompose.framework.utils.XmlUtils
 import com.ktcompose.router.KtorExt.filter
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import kotlinx.coroutines.runBlocking
@@ -59,10 +61,17 @@ object RouterHandler {
         }
     }
 
+    private suspend fun checkAuthorization(
+        router: Router, path: String, authorization: String?
+    ): Boolean {
+        return !(router.needAuthorization && !JwtManager.verify(path, authorization))
+    }
+
     suspend fun handle(
         call: ApplicationCall, router: Router
     ) {
         val path = call.request.path()
+        val clientIp = call.request.origin.remoteHost
         if (!routerMap.containsKey(path)) {
             val errorMsg = HttpCodes.getMessage(HttpStatusCode.Unauthorized)
             call.respondText(
@@ -70,21 +79,25 @@ object RouterHandler {
             )
             return
         }
-        // 接口参数过滤
-        call.filter { headers, params ->
+        call.filter(router) { headers, params ->
+            headers[HttpHeader.KEY_IP] = clientIp
             val authorization = headers.getAuthorization()
-            // 鉴权判断
-            if (router.needAuthorization) {
-                if (!JwtManager.verify(authorization)) {
-                    val errorMsg = HttpCodes.getMessage(HttpStatusCode.Unauthorized)
-                    LogUtils.e(RouterHandler::class.java, errorMsg)
-                    call.respondText(
-                        errorMsg, ContentType.Application.Json, HttpStatusCode.Unauthorized
-                    )
-                    return@filter
-                }
+            if (!checkAuthorization(router, path, authorization)) {
+                call.respondText(
+                    HttpCodes.getMessage(HttpStatusCode.Unauthorized),
+                    ContentType.Application.Json,
+                    HttpStatusCode.Unauthorized
+                )
+                return@filter
             }
-            // 参数校验
+            if (!JwtManager.verifyPermission(authorization, router.permission)) {
+                call.respondText(
+                    HttpCodes.getMessage(HttpStatusCode.Forbidden),
+                    ContentType.Application.Json,
+                    HttpStatusCode.Forbidden
+                )
+                return@filter
+            }
             router.handler?.let { handler ->
                 handler.params.forEach { p ->
                     if (!p.canBeNull && (p.name.isNullOrEmpty() || !params.containsKey(p.name))) {
@@ -95,7 +108,7 @@ object RouterHandler {
                         return@filter
                     }
                 }
-                handler.dispatch(params) { method, instance, args ->
+                handler.dispatch { method, instance, args ->
                     runBlocking {
                         args.addFirst(HttpRequest(headers, params))
                         args.addLast(object : Continuation<String> {
@@ -121,7 +134,7 @@ object RouterHandler {
                         } ?: apply {
                             authorization?.let { token ->
                                 // add header
-                                call.response.header(JwtManager.tokenName(), token)
+                                call.response.header(JwtManager.httpHeaderName(), token)
                             }
                         }
                         call.respondText(

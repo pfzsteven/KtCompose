@@ -1,11 +1,13 @@
 package com.ktcompose.framework.jwt
 
-import com.ktcompose.framework.utils.LogUtils
+import com.ktcompose.framework.role.RoleConstants
+import com.ktcompose.framework.role.Role
+import com.ktcompose.framework.utils.GsonUtils
 import io.ktor.http.*
 import java.util.*
 
 /**
- * jwt 管理
+ * jwt
  */
 object JwtManager {
 
@@ -13,7 +15,7 @@ object JwtManager {
     private lateinit var jwtConfig: JwtConfig
 
     /**
-     * 初始化jwt配置
+     * init
      */
     fun initJwtConfig(properties: Properties) {
         jwtConfig = JwtConfig(
@@ -26,7 +28,6 @@ object JwtManager {
             properties.getProperty("jwt.expired_days", "")
         )
         var verifier: Class<*>? = properties.getProperty("")?.let { textContent ->
-            // 检查是否实现了IJwtVerify 接口
             Class.forName(textContent).takeIf { it.isAssignableFrom(IJwtVerify::class.java) }
         }
         verifier = verifier ?: DefaultJwtVerifier::class.java
@@ -47,21 +48,49 @@ object JwtManager {
     /**
      * Http Header
      */
-    fun tokenName() = jwtConfig.authKey
+    fun httpHeaderName() = jwtConfig.authKey
 
     /**
-     * 生成jwt值
+     * generate jwt text
+     * @param role save role value in token
+     * @param block add more unique key-values
      */
-    suspend fun generateJwt(): String {
-        if (LogUtils.enable()) {
-            LogUtils.d(JwtManager::class.java, "generateJwt ...")
-        }
+    suspend fun generateJwt(role: Role, block: (map: HashMap<String, String>) -> Unit): String {
         val map: HashMap<String, String> = HashMap()
+        block(map)
         jwtVerifier.get().buildPayload(map)
+        map[RoleConstants.JWT_KEY_ROLE] = role.level.toString()
         return jwtConfig.generateJwt(map)
     }
 
-    suspend fun verify(authentication: String?): Boolean {
+    private fun decodePayload(authentication: String): JwtPayload? {
+        return authentication.split('.').takeIf { it.size == 3 }?.let { parts ->
+            GsonUtils.fromJson<JwtPayload>(parts[1])
+        }
+    }
+
+    fun verifyPermission(authentication: String?, requirePermissions: HashSet<Role>): Boolean {
+        return if (authentication.isNullOrEmpty()) {
+            requirePermissions.contains(Role.Guest)
+        } else {
+            decodePayload(authentication)?.let { jwtPayload ->
+                jwtPayload.role()?.let { currentRole ->
+                    if (currentRole != Role.Admin) {
+                        requirePermissions.contains(currentRole)
+                    } else {
+                        true
+                    }
+                } ?: false
+            } ?: false
+        }
+    }
+
+    /**
+     * verify jwt token is invalid or not.
+     * @param path api url path
+     * @param authentication token
+     */
+    suspend fun verify(path: String, authentication: String?): Boolean {
         if (authentication.isNullOrEmpty()) return false
         val pass = authentication.split('.').takeIf { it.size == 3 }?.let { parts ->
             val payload = parts[1]
@@ -70,13 +99,10 @@ object JwtManager {
             } else {
                 val header = parts[0]
                 val signature = parts[2]
-                // 判断签名是否正确
                 val newSignature = jwtConfig.sign(header, payload)
                 if (signature == newSignature) {
-                    // 没有过期且自定义检查通过
-                    jwtVerifier.get().verify(authentication, payload)
+                    jwtVerifier.get().verify(path, authentication, GsonUtils.fromJson<JwtPayload>(payload))
                 } else {
-                    // 签名验证不通过
                     false
                 }
             }

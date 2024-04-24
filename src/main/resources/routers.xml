@@ -1,46 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"  ?>
-<!DOCTYPE routes SYSTEM "/Users/admin/neo_backend/routers.dtd">
+<!DOCTYPE routes SYSTEM "routers.dtd">
 <routes>
-    <!-- 后台接口路由示例 -->
-    <group name="web apis">
-        <group name="user apis">
-            <version name="v1">
-                <route path="account/login" method="post">
-                    <class>com.example.main.LoginHandler</class>
-                    <method>loginV1</method>
-                    <params>
-                        <name type="java.lang.String" canBeNull="false">email</name>
-                        <name type="java.lang.String" canBeNull="false">code</name>
-                    </params>
-                </route>
-                <route path="user/info" method="get" authorize="true">
-                    <class>com.example.main.UserController</class>
-                    <method>getUserInfo</method>
-                    <params>
-                    </params>
-                </route>
-            </version>
-            <version name="v2">
-                <route path="account/login" method="post" authorize="true">
-                    <class>com.example.main.LoginHandler</class>
-                    <method>loginV2</method>
-                    <params>
-                        <name type="java.lang.String" canBeNull="false">email</name>
-                        <name type="java.lang.String" canBeNull="false">code</name>
-                        <name type="java.lang.String" canBeNull="false">mobile</name>
-                    </params>
-                </route>
-            </version>
-        </group>
+    <group name="account apis">
+        <version name="v1">
+            <route path="account/login" method="post">
+                <!-- 若针对所有角色开放，可不用配置 -->
+                <permission>
+                    <role name="all"/>
+                </permission>
+                <class>com.example.main.LoginHandler</class>
+                <method>loginV1</method>
+                <params>
+                    <param name="email" type="string"/>
+                    <param name="code" type="string"/>
+                </params>
+            </route>
+        </version>
     </group>
 
-    <!-- 客户端接口路由示例 -->
-    <group name="app apis">
-        <!-- 用户相关api -->
-        <group name="user apis">
-        </group>
-        <!-- 小说api -->
-        <group name="">
-        </group>
+    <group name="user apis">
+        <version name="v1">
+        </version>
     </group>
+
 </routes>

@@ -1,7 +1,7 @@
 package com.ktcompose.engine
 
 import com.ktcompose.framework.api.ApiCodesParser
-import com.ktcompose.framework.api.dto.ApiResponse
+import com.ktcompose.framework.dao.DaoFactory
 import com.ktcompose.framework.env.ServerEnvManager
 import com.ktcompose.framework.http.HttpUtils
 import com.ktcompose.framework.jwt.JwtManager
@@ -50,8 +50,6 @@ object ServerEngine {
         LogUtils.init(properties.getProperty("log.enable"))
         // http
         HttpUtils.init(properties)
-        // DTO Serialize
-        ApiResponse.updateSerialNumber(properties.getProperty("dto.serial", ""))
         // [可选]若有添加验证模块，则初始化
         initValidationModule()
         // API环境管理 api environment manager
@@ -62,6 +60,8 @@ object ServerEngine {
         ApiCodesParser.init("api_codes.xml")
         // jwt 解析
         JwtManager.initJwtConfig(properties)
+        // database
+        DaoFactory.init(properties)
         return properties
     }
 
@@ -70,6 +70,7 @@ object ServerEngine {
      * @param builder 构建环境
      * @param init 外部可继续初始化application环境
      */
+    @JvmStatic
     fun start(builder: ApplicationEngineEnvironmentBuilder, init: (application: Application) -> Unit = {}) {
         val properties = init()
         val keyStoreFile = File("build/keystore.jks")

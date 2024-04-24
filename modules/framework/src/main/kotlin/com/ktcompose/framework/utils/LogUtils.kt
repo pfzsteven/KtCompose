@@ -64,6 +64,7 @@ object LogUtils {
 
     @JvmStatic
     fun exception(tag: Class<*>, t: Throwable) {
-        getOrCreate(tag).warn("${t.message}", t)
+        t.printStackTrace()
+        getOrCreate(tag).error("${t.message}", t)
     }
 }

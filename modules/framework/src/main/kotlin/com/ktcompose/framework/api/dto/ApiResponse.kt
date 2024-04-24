@@ -2,7 +2,7 @@ package com.ktcompose.framework.api.dto
 
 import com.ktcompose.framework.http.HttpHeader
 
-data class ApiResponse<T>(private val serializedId: Long = 1L) {
+class ApiResponse<T> {
 
     /**
      * 状态码: 0或者200 代表无错误
@@ -41,18 +41,8 @@ data class ApiResponse<T>(private val serializedId: Long = 1L) {
     companion object {
 
         @JvmStatic
-        var autoSerialNumber: Long = 100000000L
-
-        @JvmStatic
-        fun updateSerialNumber(serializedId: String) {
-            serializedId.takeIf { it.isNotEmpty() }?.let {
-                autoSerialNumber = it.toLong()
-            }
-        }
-
-        @JvmStatic
         inline fun <reified T> success(data: T? = null): ApiResponse<T> {
-            return ApiResponse<T>(autoSerialNumber).let { result ->
+            return ApiResponse<T>().let { result ->
                 result.code = 0
                 result.data = data
                 result.msg = "success"
@@ -62,7 +52,7 @@ data class ApiResponse<T>(private val serializedId: Long = 1L) {
 
         @JvmStatic
         inline fun <reified T> fail(code: Int, msg: String?): ApiResponse<T> {
-            return ApiResponse<T>(autoSerialNumber).let { result ->
+            return ApiResponse<T>().let { result ->
                 result.code = code
                 result.msg = msg
                 result

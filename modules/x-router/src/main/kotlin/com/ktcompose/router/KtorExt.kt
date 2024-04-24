@@ -57,7 +57,7 @@ object KtorExt {
 
     @JvmStatic
     suspend fun ApplicationCall.filter(
-        result: suspend (header: HttpHeader, param: HttpRequestParameters) -> Unit
+        router: Router, result: suspend (header: HttpHeader, param: HttpRequestParameters) -> Unit
     ) {
         val httpHeader = HttpHeader()
         var httpRequestParameters: HttpRequestParameters? = null
@@ -85,8 +85,19 @@ object KtorExt {
                 httpRequestParameters?.putAll(rawParams.toHttpRequestParameters())
             }
         }
-        httpRequestParameters = httpRequestParameters ?: HttpRequestParameters()
-        result.invoke(httpHeader, httpRequestParameters!!)
+        httpRequestParameters = (httpRequestParameters ?: HttpRequestParameters())
+        httpRequestParameters?.let { requestParameters ->
+            router.handler?.params?.forEach { routerParams ->
+                if (!routerParams.defaultValue.isNullOrEmpty()) {
+                    routerParams.name?.let { parameterName ->
+                        if (!requestParameters.containsKey(parameterName)) {
+                            requestParameters[parameterName] = routerParams.defaultValue!!
+                        }
+                    }
+                }
+            }
+            result.invoke(httpHeader, requestParameters)
+        }
     }
 
     @JvmStatic

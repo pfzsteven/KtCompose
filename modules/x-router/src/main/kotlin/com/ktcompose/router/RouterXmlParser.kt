@@ -1,5 +1,6 @@
 package com.ktcompose.router
 
+import com.ktcompose.framework.role.Role
 import org.w3c.dom.Node
 import java.util.concurrent.ConcurrentHashMap
 
@@ -9,33 +10,95 @@ import java.util.concurrent.ConcurrentHashMap
 object RouterXmlParser {
 
     @JvmStatic
+    private fun convert2BasicType(type: String): String {
+        // int|string|float|double|long|short|byte
+        return when (type) {
+            "int" -> "java.lang.Integer"
+            "float" -> "java.lang.Float"
+            "double" -> "java.lang.Double"
+            "long" -> "java.lang.Long"
+            "short" -> "java.lang.Short"
+            "byte" -> "java.lang.Byte"
+            else -> "java.lang.String"
+        }
+    }
+
+    /**
+     * admin|developer|operator|user|guest
+     */
+    @JvmStatic
+    private fun convert2RoleLevel(value: String): Role {
+        return when (value) {
+            "developer" -> Role.Developer
+            "operator" -> Role.Operator
+            "user" -> Role.User
+            "guest" -> Role.Guest
+            else -> Role.Admin
+        }
+    }
+
+    @JvmStatic
+    private fun parsePermission(node: Node): HashSet<Role> {
+        val levels = HashSet<Role>()
+        if (node.hasChildNodes()) {
+            val childNodes = node.childNodes
+            for (i in 0 until childNodes.length) {
+                val child = childNodes.item(i)
+                if (child.nodeName === "role") {
+                    val attrs = child.attributes
+                    for (j in 0 until attrs.length) {
+                        val attr = attrs.item(j)
+                        when (val attrValue = attr.nodeValue) {
+                            "all" -> {
+                                levels.addAll(Role.entries.toTypedArray())
+                            }
+
+                            else -> {
+                                levels.add(convert2RoleLevel(attrValue))
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            levels.addAll(Role.entries.toTypedArray())
+        }
+        return levels
+    }
+
+    @JvmStatic
     private fun parseRouteParams(child: Node, paramsList: ArrayList<RouterParams>?) {
         if (child.hasChildNodes() && paramsList != null) {
             val namesNodeList = child.childNodes
             for (n in 0 until namesNodeList.length) {
                 val nameNode = namesNodeList.item(n)
                 when (nameNode.nodeName) {
-                    "name" -> {
+                    "param" -> {
                         val params = RouterParams()
                         paramsList.add(params)
-                        nameNode.textContent?.takeIf { it.isNotEmpty() }?.let { nodeValue ->
-                            params.name = nodeValue
-                            nameNode.attributes?.takeIf { it.length > 0 }?.let { attributes ->
-                                for (j in 0 until attributes.length) {
-                                    val attr = attributes.item(j)
-                                    val value = attr.nodeValue
-                                    value.takeIf { it.isNotEmpty() }?.let { v ->
-                                        when (attr.nodeName) {
-                                            "canBeNull" -> {
-                                                params.canBeNull = v.toBoolean()
-                                            }
+                        nameNode.attributes?.takeIf { it.length > 0 }?.let { attributes ->
+                            for (j in 0 until attributes.length) {
+                                val attr = attributes.item(j)
+                                val value = attr.nodeValue
+                                value.takeIf { it.isNotEmpty() }?.let { v ->
+                                    when (attr.nodeName) {
+                                        "name" -> {
+                                            params.name = v
+                                        }
 
-                                            "type" -> {
-                                                params.type = v
-                                            }
+                                        "canBeNull" -> {
+                                            params.canBeNull = v.toBoolean()
+                                        }
 
-                                            else -> {
-                                            }
+                                        "type" -> {
+                                            params.type = convert2BasicType(v)
+                                        }
+
+                                        "default" -> {
+                                            params.defaultValue = v
+                                        }
+
+                                        else -> {
                                         }
                                     }
                                 }
@@ -136,6 +199,10 @@ object RouterXmlParser {
                             val childValue = child.textContent
                             router.handler = router.handler ?: RouterDispatchHandler()
                             when (childNodeName) {
+                                "permission" -> {
+                                    router.permission = parsePermission(child)
+                                }
+
                                 "class" -> {
                                     router.handler?.apply {
                                         clazz = Class.forName(childValue)
@@ -149,7 +216,6 @@ object RouterXmlParser {
                                 }
 
                                 "params" -> {
-                                    // 解析请求参数
                                     parseRouteParams(child, router.handler?.params)
                                 }
                             }
