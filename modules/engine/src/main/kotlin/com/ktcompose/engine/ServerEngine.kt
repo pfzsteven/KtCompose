@@ -71,7 +71,9 @@ object ServerEngine {
      * @param init 外部可继续初始化application环境
      */
     @JvmStatic
-    fun start(builder: ApplicationEngineEnvironmentBuilder, init: (application: Application) -> Unit = {}) {
+    fun start(
+        builder: ApplicationEngineEnvironmentBuilder, init: (application: Application, properties: Properties) -> Unit
+    ) {
         val properties = init()
         val keyStoreFile = File("build/keystore.jks")
         val keyStore: KeyStore = if (!keyStoreFile.exists()) {
@@ -100,7 +102,7 @@ object ServerEngine {
             module {
                 configureHTTP()
                 configureRouting()
-                init(this)
+                init(this, properties)
             }
         }
     }
@@ -109,11 +111,13 @@ object ServerEngine {
     private fun Application.configureRouting() {
         routing {
             RouterHandler.filter(HttpMethod.Get) { path, router ->
+                LogUtils.d(ServerEngine::class.java, "Config Router with [get]:$path")
                 get(path) {
                     RouterHandler.handle(call, router)
                 }
             }
             RouterHandler.filter(HttpMethod.Post) { path, router ->
+                LogUtils.d(ServerEngine::class.java, "Config Router with [post]:$path")
                 post(path) {
                     RouterHandler.handle(call, router)
                 }

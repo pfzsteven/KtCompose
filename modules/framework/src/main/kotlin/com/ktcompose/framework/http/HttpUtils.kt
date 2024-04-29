@@ -3,7 +3,6 @@ package com.ktcompose.framework.http
 import com.ktcompose.framework.utils.LogUtils
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
@@ -48,7 +47,6 @@ object HttpUtils {
         }
     }
 
-    @JvmStatic
     fun init(properties: Properties) {
         val connectionTimeout = properties.getProperty("http.connect_timeout")
         val readTimeout = properties.getProperty("http.read_timeout")
@@ -60,7 +58,6 @@ object HttpUtils {
         }
     }
 
-    @JvmStatic
     suspend fun get(
         url: String, headers: Map<String, String> = emptyMap(), params: Map<String, String> = emptyMap()
     ): HttpResult {
@@ -86,14 +83,15 @@ object HttpUtils {
                 }
                 rawData.text = response.bodyAsText()
                 rawData.statusCode = response.status
-            } catch (e: ClientRequestException) {
+            } catch (e: Exception) {
+                LogUtils.e(HttpUtils::class.java, "Http Error.[get] url:$url failed.")
+                LogUtils.e(HttpUtils::class.java, e)
                 rawData.exception = e
             }
         }
         return rawData
     }
 
-    @JvmStatic
     suspend fun post(
         url: String, headers: Map<String, String> = emptyMap(), params: Map<String, String> = emptyMap()
     ): HttpResult {
@@ -119,7 +117,9 @@ object HttpUtils {
                 }
                 rawData.text = response.bodyAsText()
                 rawData.statusCode = response.status
-            } catch (e: ClientRequestException) {
+            } catch (e: Exception) {
+                LogUtils.e(HttpUtils::class.java, "Http Error.[post] url:$url failed.")
+                LogUtils.e(HttpUtils::class.java, e)
                 rawData.exception = e
             }
         }

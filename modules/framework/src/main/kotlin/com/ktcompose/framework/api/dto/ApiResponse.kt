@@ -51,10 +51,11 @@ class ApiResponse<T> {
         }
 
         @JvmStatic
-        inline fun <reified T> fail(code: Int, msg: String?): ApiResponse<T> {
+        inline fun <reified T> fail(code: Int, msg: String?, data: T? = null): ApiResponse<T> {
             return ApiResponse<T>().let { result ->
                 result.code = code
                 result.msg = msg
+                result.data = data
                 result
             }
         }

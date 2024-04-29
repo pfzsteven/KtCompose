@@ -11,7 +11,8 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("org.apache.commons:commons-email:1.5")
     compileOnly("org.json:json:20240303")
-    implementation(project(":framework"))
+    compileOnly(project(":framework"))
+    compileOnly("com.google.code.gson:gson:2.10.1")
 }
 
 tasks.test {

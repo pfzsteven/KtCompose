@@ -4,6 +4,8 @@ import com.ktcompose.framework.jwt.JwtManager
 
 class HttpHeader : HashMap<String, String>() {
 
+    var clientIp: String? = null
+
     companion object {
         const val KEY_IP = "ip"
         const val KEY_CLIENT_VERSION = "Client-Version"
@@ -16,10 +18,6 @@ class HttpHeader : HashMap<String, String>() {
     fun getAuthorization(): String? {
         val jwtAuthName = JwtManager.httpHeaderName()
         return this[jwtAuthName] ?: this[jwtAuthName.lowercase()]
-    }
-
-    fun getClientIp(): String? {
-        return this[KEY_IP]
     }
 
     fun getClientVersion(): String? {

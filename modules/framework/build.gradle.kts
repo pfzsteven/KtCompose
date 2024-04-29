@@ -22,6 +22,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.1.0")
     implementation("org.json:json:20240303")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
 }
 kotlin {
     jvmToolchain(jdkVersion.toInt())

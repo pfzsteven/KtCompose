@@ -86,18 +86,16 @@ object KtorExt {
             }
         }
         httpRequestParameters = (httpRequestParameters ?: HttpRequestParameters())
-        httpRequestParameters?.let { requestParameters ->
-            router.handler?.params?.forEach { routerParams ->
-                if (!routerParams.defaultValue.isNullOrEmpty()) {
-                    routerParams.name?.let { parameterName ->
-                        if (!requestParameters.containsKey(parameterName)) {
-                            requestParameters[parameterName] = routerParams.defaultValue!!
-                        }
+        router.handler?.params?.forEach { routerParams ->
+            if (!routerParams.defaultValue.isNullOrEmpty()) {
+                routerParams.name?.let { parameterName ->
+                    if (!httpRequestParameters!!.containsKey(parameterName)) {
+                        httpRequestParameters!![parameterName] = routerParams.defaultValue!!
                     }
                 }
             }
-            result.invoke(httpHeader, requestParameters)
         }
+        result.invoke(httpHeader, httpRequestParameters!!)
     }
 
     @JvmStatic

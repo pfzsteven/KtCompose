@@ -37,33 +37,43 @@ object LogUtils {
 
     @JvmStatic
     fun d(tag: Class<*>, msg: String) {
-        getOrCreate(tag).debug(msg)
-    }
-
-    @JvmStatic
-    fun i(tag: Class<*>, msg: String) {
-        getOrCreate(tag).info("[$tag]: $msg")
-    }
-
-    @JvmStatic
-    fun w(tag: Class<*>, msg: String) {
-        getOrCreate(tag).warn(msg)
-    }
-
-    @JvmStatic
-    fun w(tag: Class<*>, e: Exception) {
-        getOrCreate(tag).warn(e.message, e)
-    }
-
-    @JvmStatic
-    fun e(tag: Class<*>, msg: String) {
         if (enable()) {
-            getOrCreate(tag).error(msg)
+            println(msg)
+            getOrCreate(tag).debug(msg)
         }
     }
 
     @JvmStatic
-    fun exception(tag: Class<*>, t: Throwable) {
+    fun i(tag: Class<*>, msg: String) {
+        if (enable()) {
+            println(msg)
+            getOrCreate(tag).info("[$tag]: $msg")
+        }
+    }
+
+    @JvmStatic
+    fun w(tag: Class<*>, msg: String) {
+        if (enable()) {
+            println(msg)
+            getOrCreate(tag).warn(msg)
+        }
+    }
+
+    @JvmStatic
+    fun w(tag: Class<*>, e: Exception) {
+        if (enable()) {
+            getOrCreate(tag).warn(e.message, e)
+        }
+    }
+
+    @JvmStatic
+    fun e(tag: Class<*>, msg: String) {
+        println(msg)
+        getOrCreate(tag).error(msg)
+    }
+
+    @JvmStatic
+    fun e(tag: Class<*>, t: Throwable) {
         t.printStackTrace()
         getOrCreate(tag).error("${t.message}", t)
     }

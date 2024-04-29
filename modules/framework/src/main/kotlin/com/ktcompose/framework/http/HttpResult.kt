@@ -7,6 +7,8 @@ class HttpResult {
     var text: String? = null
     var exception: Throwable? = null
 
+    fun success(): Boolean = statusCode.isSuccess()
+
     companion object {
         @JvmStatic
         fun error(code: Int): HttpResult {

@@ -13,7 +13,22 @@
     <Code value="-1000">
         <zh>请求参数错误</zh>
         <tw>請求參數錯誤</tw>
-        <en>Request error</en>
+        <en>Request parameter error</en>
+    </Code>
+    <Code value="-1001">
+        <zh>账号不存在</zh>
+        <tw>账号不存在</tw>
+        <en>账号不存在</en>
+    </Code>
+    <Code value="-1002">
+        <zh>用户不存在</zh>
+        <tw>用户不存在</tw>
+        <en>用户不存在</en>
+    </Code>
+    <Code value="-1003">
+        <zh>验证码不正确或已失效</zh>
+        <tw>验证码不正确或已失效</tw>
+        <en>验证码不正确或已失效</en>
     </Code>
     <Code value="-2000">
         <zh>权限不足</zh>

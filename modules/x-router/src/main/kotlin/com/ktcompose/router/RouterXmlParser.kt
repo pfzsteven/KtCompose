@@ -135,9 +135,9 @@ object RouterXmlParser {
                 when (attr.nodeName) {
                     "path" -> {
                         router.path = if (value.startsWith("/")) {
-                            "/${version}${value}"
+                            "/api/${version}${value}"
                         } else {
-                            "/${version}/${value}"
+                            "/api/${version}/${value}"
                         }
                     }
 
@@ -184,6 +184,7 @@ object RouterXmlParser {
 
             "route" -> {
                 val router = Router()
+                router.permission.addAll(Role.entries.toTypedArray())
                 // attributes
                 parseRouteAttributes(parent, router, version)
                 // cache
@@ -200,7 +201,8 @@ object RouterXmlParser {
                             router.handler = router.handler ?: RouterDispatchHandler()
                             when (childNodeName) {
                                 "permission" -> {
-                                    router.permission = parsePermission(child)
+                                    router.permission.clear()
+                                    router.permission.addAll(parsePermission(child))
                                 }
 
                                 "class" -> {

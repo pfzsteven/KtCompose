@@ -17,11 +17,11 @@ object DaoFactory {
         db.init(properties)
     }
 
-    suspend fun <T> executeTransaction(block: () -> T) {
-        db.opt().executeTransaction(block)
+    suspend fun <T> executeTransaction(block: () -> T): T? {
+        return db.opt().executeTransaction(block)
     }
 
-    suspend fun <T> executeQuery(block: () -> T) {
-        db.opt().executeQuery(block)
+    suspend fun <T> executeQuery(block: () -> T): T? {
+        return db.opt().executeQuery(block)
     }
 }

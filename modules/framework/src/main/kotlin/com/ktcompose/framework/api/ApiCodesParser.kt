@@ -35,7 +35,7 @@ object ApiCodesParser {
                                 try {
                                     code = value.textContent.toInt()
                                 } catch (e: Throwable) {
-                                    LogUtils.exception(HttpCodes::class.java, e)
+                                    LogUtils.e(HttpCodes::class.java, e)
                                 }
                             }
                         }

@@ -25,11 +25,15 @@
         <!-- class > method > params 标签 -->
         <!ELEMENT params (param*)>
         <!-- class > params > name 标签 -->
-        <!ELEMENT param (#PCDATA)>
         <!ATTLIST param
                 name CDATA #REQUIRED
                 type (int|string|float|double|long|short|byte) #REQUIRED
                 canBeNull (true | false) "true"
                 default CDATA #IMPLIED>
+        <!ELEMENT param (enum*)>
+        <!ELEMENT enum (#PCDATA)>
+        <!ATTLIST enum
+                name CDATA #REQUIRED
+                value CDATA #REQUIRED>
 
 

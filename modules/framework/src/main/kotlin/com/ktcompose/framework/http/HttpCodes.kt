@@ -5,14 +5,29 @@ import io.ktor.http.*
 
 object HttpCodes {
     /**
-     * 请求参数错误
+     * invalid parameters
      */
     const val ERR_INVALID_PARAMETERS = -1000
 
     /**
-     * 权限不足
+     * unknown error
      */
-    const val ERR_NO_PERMISSIONS = -2000
+    const val ERR_UNKNOWN = -2000
+
+    /**
+     * Account is not exists in DB.
+     */
+    const val ERR_ACCOUNT_NOT_EXISTS = -1001
+
+    /**
+     * User is not exists in DB
+     */
+    const val ERR_USER_NOT_EXISTS = -1002
+
+    /**
+     * Identity code (email code , sms code , etc)
+     */
+    const val ERR_INVALID_CODE = -1003
 
     @JvmStatic
     fun getMessage(code: HttpStatusCode, language: String? = "en"): String {

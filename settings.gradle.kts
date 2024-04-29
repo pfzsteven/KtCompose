@@ -1,5 +1,6 @@
 import java.io.FileFilter
-import java.io.FilenameFilter
+import java.io.FileInputStream
+import java.util.*
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
@@ -35,3 +36,18 @@ fun buildModules(module: File, parentModule: File? = null) {
 }
 buildModules(file("modules"))
 //--------------------------------------------
+
+val gradleProperties = File("gradle.properties")
+if (gradleProperties.exists()) {
+    val properties = Properties()
+    val inputStream = FileInputStream(gradleProperties)
+    properties.load(inputStream)
+    inputStream.close()
+    val moduleName: String = properties.getProperty("buildModule")!!
+    include(moduleName)
+    println("---- compile module[$moduleName] success ----")
+} else {
+    println("${gradleProperties.name} is not exists.")
+}
+
+

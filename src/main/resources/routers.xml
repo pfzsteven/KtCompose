@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"  ?>
 <!DOCTYPE routes SYSTEM "routers.dtd">
 <routes>
+
     <group name="account apis">
         <version name="v1">
             <route path="account/login" method="post">
-                <!-- 若针对所有角色开放，可不用配置 -->
-                <permission>
-                    <role name="all"/>
-                </permission>
-                <class>com.example.main.LoginHandler</class>
-                <method>loginV1</method>
+                <class>com.xxx.xxx.LoginController</class>
+                <method>login</method>
                 <params>
                     <param name="email" type="string"/>
                     <param name="code" type="string"/>
                 </params>
             </route>
-        </version>
-    </group>
-
-    <group name="user apis">
-        <version name="v1">
+            <route path="account/sendEmailCode" method="get">
+                <class>com.xxx.xxx.LoginController</class>
+                <method>sendVerifyCodeToMail</method>
+                <params>
+                    <param name="email" type="string" canBeNull="false"/>
+                </params>
+            </route>
         </version>
     </group>
 

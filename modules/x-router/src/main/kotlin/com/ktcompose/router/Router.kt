@@ -132,5 +132,5 @@ class Router {
     /**
      * 访问路由权限
      */
-    lateinit var permission: HashSet<Role>
+    val permission: HashSet<Role> = HashSet()
 }

@@ -2,7 +2,6 @@ package com.ktcompose.router
 
 import com.ktcompose.framework.api.dto.ApiResponse
 import com.ktcompose.framework.http.HttpCodes
-import com.ktcompose.framework.http.HttpHeader
 import com.ktcompose.framework.http.HttpRequest
 import com.ktcompose.framework.jwt.JwtManager
 import com.ktcompose.framework.utils.GsonUtils
@@ -54,56 +53,61 @@ object RouterHandler {
     fun init() {
         registerRoutersFromXml()
         registerRoutersFromUrl()
-        if (LogUtils.enable()) {
-            routerMap.forEach { (s, router) ->
-                LogUtils.i(RouterHandler::class.java, "Router[${s}]====${router.path}")
-            }
+        routerMap.forEach { (s, _) ->
+            println("Register Router[${s}]")
         }
     }
 
-    private suspend fun checkAuthorization(
+    private suspend fun isTokenValid(
         router: Router, path: String, authorization: String?
     ): Boolean {
-        return !(router.needAuthorization && !JwtManager.verify(path, authorization))
+        return !router.needAuthorization || JwtManager.verify(path, authorization)
     }
 
     suspend fun handle(
         call: ApplicationCall, router: Router
     ) {
         val path = call.request.path()
+        LogUtils.d(RouterHandler::class.java, "handling request:$path")
         val clientIp = call.request.origin.remoteHost
         if (!routerMap.containsKey(path)) {
             val errorMsg = HttpCodes.getMessage(HttpStatusCode.Unauthorized)
+            LogUtils.i(RouterHandler::class.java, errorMsg)
             call.respondText(
                 errorMsg, ContentType.Application.Json, HttpStatusCode.NotFound
             )
             return
         }
+        LogUtils.d(RouterHandler::class.java, "client ip:$clientIp")
         call.filter(router) { headers, params ->
-            headers[HttpHeader.KEY_IP] = clientIp
+            headers.clientIp = clientIp
             val authorization = headers.getAuthorization()
-            if (!checkAuthorization(router, path, authorization)) {
+            if (!isTokenValid(router, path, authorization)) {
+                LogUtils.e(RouterHandler::class.java, "checkAuthorization fail.")
                 call.respondText(
-                    HttpCodes.getMessage(HttpStatusCode.Unauthorized),
-                    ContentType.Application.Json,
-                    HttpStatusCode.Unauthorized
+                    "Token is expired or invalid.", ContentType.Application.Json, HttpStatusCode.Unauthorized
                 )
                 return@filter
             }
             if (!JwtManager.verifyPermission(authorization, router.permission)) {
+                LogUtils.e(RouterHandler::class.java, "verifyPermission fail.")
                 call.respondText(
-                    HttpCodes.getMessage(HttpStatusCode.Forbidden),
-                    ContentType.Application.Json,
-                    HttpStatusCode.Forbidden
+                    "Permission denied!", ContentType.Application.Json, HttpStatusCode.Forbidden
+                )
+                return@filter
+            }
+            if (router.handler == null) {
+                call.respondText(
+                    "router.handler is null.", ContentType.Application.Json, HttpStatusCode.InternalServerError
                 )
                 return@filter
             }
             router.handler?.let { handler ->
                 handler.params.forEach { p ->
                     if (!p.canBeNull && (p.name.isNullOrEmpty() || !params.containsKey(p.name))) {
-                        val errorMsg = HttpCodes.getMessage(HttpCodes.ERR_INVALID_PARAMETERS)
+//                        val errorMsg = HttpCodes.getMessage(HttpCodes.ERR_INVALID_PARAMETERS)
                         call.respondText(
-                            errorMsg, ContentType.Application.Json, HttpStatusCode.OK
+                            "参数'${p.name}' 错误", ContentType.Application.Json, HttpStatusCode.OK
                         )
                         return@filter
                     }
@@ -116,14 +120,20 @@ object RouterHandler {
                             override fun resumeWith(result: Result<String>) {
                             }
                         })
-                        val apiResponse = method.invoke(instance, *args.toTypedArray())?.takeIf {
+                        val invokeResult = method.invoke(instance, *args.toTypedArray())
+                        val apiResponse = invokeResult?.takeIf {
                             it is ApiResponse<*>
                         }?.let { dto ->
                             dto as ApiResponse<*>
                         }
                         if (apiResponse == null) {
+                            if (LogUtils.enable()) {
+                                LogUtils.w(
+                                    RouterHandler::class.java, "Method Invalid!"
+                                )
+                            }
                             call.respondText(
-                                "${router.path}", ContentType.Application.Json, HttpStatusCode.InternalServerError
+                                "Method Invalid", ContentType.Application.Json, HttpStatusCode.InternalServerError
                             )
                             return@runBlocking
                         }
@@ -142,9 +152,7 @@ object RouterHandler {
                         )
                     }
                 }
-            } ?: call.respondText(
-                "RouterDispatchHandler is not found.", ContentType.Application.Json, HttpStatusCode.InternalServerError
-            )
+            }
         }
     }
 }
